@@ -2,6 +2,8 @@
 
 import argparse
 import configparser
+import imaplib
+import keyring
 
 def _parse_args():
     """Use argparse to get args from command line"""
@@ -18,6 +20,12 @@ def _parse_args():
     )
 
     return parser.parse_args()
+
+def email_connection(account, server, keyringID, folder):
+    connection = imaplib.IMAP4_SSL(server)
+    connection.login(account, keyring.get_password(keyringID, account))
+    connection.select(folder)
+    return connection
 
 def main():
     args = _parse_args()
