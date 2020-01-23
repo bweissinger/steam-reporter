@@ -3,6 +3,7 @@
 import argparse
 import imaplib
 import keyring
+import getpass
 from config import Config
 
 def _parse_args():
@@ -18,6 +19,12 @@ def _parse_args():
         action='store_true',
         help='do not print to console'
     )
+    parser.add_argument(
+        '--password',
+        '-p',
+        action='store_true',
+        help='Set password in keyring.'
+    )
 
     return parser.parse_args()
 
@@ -27,9 +34,20 @@ def email_connection(account, server, keyring_id, folder):
     connection.select(folder)
     return connection
 
+def set_keyring_password(keyring_id, email_address):
+    prompt = ("Enter password for %s: " % email_address)
+    keyring.set_password(
+        keyring_id, 
+        email_address, 
+        getpass.getpass(prompt))
+
 def main():
+
     args = _parse_args()
     config = Config(args.config)
+
+    if args.password: set_keyring_password(config.keyring_id, config.email_address)
+
     return
 
 if __name__ == '__main__':
