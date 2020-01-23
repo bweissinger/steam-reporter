@@ -28,8 +28,7 @@ def _parse_args():
 
     return parser.parse_args()
 
-def email_connection(email_address, server, keyring_id, folder):
-
+def _email_connection(email_address, server, keyring_id, folder):
     connection = imaplib.IMAP4_SSL(server)
 
     try:
@@ -42,15 +41,15 @@ def email_connection(email_address, server, keyring_id, folder):
     connection.select(folder)
     return connection
 
-def set_keyring_password(keyring_id, email_address):
+def _set_keyring_password(keyring_id, email_address):
     prompt = ("Enter password for %s: " % email_address)
     keyring.set_password(
         keyring_id, 
         email_address, 
         getpass.getpass(prompt))
 
-def get_steam_mail_ids(email_address, server, keyring_id, folder):
-    with email_connection(email_address, server, keyring_id, folder) as connection:
+def _get_steam_mail_ids(email_address, server, keyring_id, folder):
+    with _email_connection(email_address, server, keyring_id, folder) as connection:
         result, message_ids = connection.search(None, "ALL")
         return message_ids
 
@@ -59,7 +58,7 @@ def main():
     args = _parse_args()
     config = Config(args.config)
 
-    if args.password: set_keyring_password(config.keyring_id, config.email_address)
+    if args.password: _set_keyring_password(config.keyring_id, config.email_address)
 
     return
 
