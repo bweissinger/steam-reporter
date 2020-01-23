@@ -21,9 +21,9 @@ def _parse_args():
 
     return parser.parse_args()
 
-def email_connection(account, server, keyringID, folder):
+def email_connection(account, server, keyring_id, folder):
     connection = imaplib.IMAP4_SSL(server)
-    connection.login(account, keyring.get_password(keyringID, account))
+    connection.login(account, keyring.get_password(keyring_id, account))
     connection.select(folder)
     return connection
 
