@@ -29,8 +29,16 @@ def _parse_args():
     return parser.parse_args()
 
 def email_connection(email_address, server, keyring_id, folder):
+
     connection = imaplib.IMAP4_SSL(server)
-    connection.login(email_address, keyring.get_password(keyring_id, email_address))
+
+    try:
+        connection.login(email_address, keyring.get_password(keyring_id, email_address))
+    except:
+        print("\nFailed to login to %s. Make sure you have set the correct keyring "
+            "password with the -p/--password flag.\n" % email_address)
+        raise
+
     connection.select(folder)
     return connection
 
