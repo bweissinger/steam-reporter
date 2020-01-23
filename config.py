@@ -10,6 +10,7 @@ class Config:
     database: str
     server_receive: str
     server_send: str
+    keyring_id: str = 'steam-reporter'
 
     def __init__(self, config_file):
 
