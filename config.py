@@ -11,7 +11,10 @@ class Config:
     server_receive: str
     server_send: str
 
-    def __init__(self, config):
+    def __init__(self, config_file):
+
+        config = configparser.ConfigParser()
+        config.read(config_file)
         
         try:
             object.__setattr__(self, 'email_folder', config.get('General', 'Email_Folder'))
