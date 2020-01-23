@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
-import configparser
 import imaplib
 import keyring
+from config import Config
 
 def _parse_args():
     """Use argparse to get args from command line"""
@@ -29,6 +29,7 @@ def email_connection(account, server, keyringID, folder):
 
 def main():
     args = _parse_args()
+    config = Config(args.config)
     return
 
 if __name__ == '__main__':
