@@ -6,6 +6,9 @@ import keyring
 import getpass
 from config import Config
 import concurrent.futures
+import email_parser
+import io
+import tempfile
 
 def _parse_args():
     """Use argparse to get args from command line"""
@@ -61,9 +64,8 @@ def _fetch_email(login_info, id):
 
 def _process_email(login_info, id):
     email = _fetch_email(login_info, id)
-    #transaction = _parse_email(email)
-    #return transaction
-    return
+    with io.StringIO(email[0][1].decode("utf-8")) as email_file:
+        return email_parser.parse_email_file(email_file)
 
 def main():
 
