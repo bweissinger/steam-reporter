@@ -51,7 +51,11 @@ def _set_keyring_password(keyring_id, email_address):
 def _get_steam_mail_ids(email_address, server, keyring_id, folder):
     with _email_connection(email_address, server, keyring_id, folder) as connection:
         result, message_ids = connection.search(None, "ALL")
-        return message_ids
+        return message_ids[0].split()
+
+def _fetch_email(connection, id):
+    result, email = connection.fetch(id, '(RFC822)')
+    return email
 
 def main():
 
