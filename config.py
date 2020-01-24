@@ -23,7 +23,7 @@ class Config:
         except configparser.NoOptionError:
             object.__setattr__(self, 'email_folder', 'INBOX')
 
-        object.__setattr__(self, 'processes', config.get('General', 'Processes'))
+        object.__setattr__(self, 'processes', config.getint('General', 'Processes'))
         object.__setattr__(self, 'database', config.get('General', 'Database'))
         object.__setattr__(self, 'email_address', config.get('General', 'Email_Address'))
         object.__setattr__(self, 'server_receive', config.get('Receive', 'Server'))
