@@ -5,9 +5,7 @@ import imaplib
 import keyring
 import getpass
 from config import Config
-import queue
 import concurrent.futures
-import threading
 
 def _parse_args():
     """Use argparse to get args from command line"""
