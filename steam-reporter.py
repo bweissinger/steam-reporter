@@ -9,6 +9,8 @@ import concurrent.futures
 import email_parser
 import io
 import tempfile
+import sqlite3
+import os
 
 def _parse_args():
     """Use argparse to get args from command line"""
@@ -67,6 +69,26 @@ def _process_email(login_info, id):
     with io.StringIO(email[0][1].decode("utf-8")) as email_file:
         return email_parser.parse_email_file(email_file)
 
+def _post_transactions(transactions, database):
+    if not os.path.exists(database):
+        os.makedirs(os.path.dirname(database))
+
+    with sqlite3.connect(database) as connection:
+        cursor = connection.cursor()
+
+        connection.execute('''CREATE TABLE IF NOT EXISTS steam_trades 
+                (name text, amount real, date date, confirmation_number text UNIQUE)''')
+        
+        rows = connection.executemany('''INSERT OR IGNORE INTO steam_trades 
+                (name, amount, date, confirmation_number) 
+                VALUES (?, ?, ?, ?)''', 
+                transactions)
+
+        print(str(rows.rowcount) + ' transactions were added.')
+        print(str(len(transactions) - rows.rowcount) + ' duplicate transactions were ignored.')
+
+    return
+
 def main():
 
     args = _parse_args()
@@ -83,10 +105,13 @@ def main():
 
     ids = _get_steam_mail_ids(*login_info)
 
+    transactions = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=config.processes) as executor:
         future_to_id = {executor.submit(_process_email, login_info, id): id for id in ids}
         for future in concurrent.futures.as_completed(future_to_id):
-            print(future.result())
+            if future.result() is not None:
+                transactions.extend(future.result())
+    _post_transactions(transactions, config.database)
 
     return
 
