@@ -5,6 +5,9 @@ import imaplib
 import keyring
 import getpass
 from config import Config
+import queue
+import concurrent.futures
+import threading
 
 def _parse_args():
     """Use argparse to get args from command line"""
@@ -53,9 +56,10 @@ def _get_steam_mail_ids(email_address, server, keyring_id, folder):
         result, message_ids = connection.search(None, "ALL")
         return message_ids[0].split()
 
-def _fetch_email(connection, id):
-    result, email = connection.fetch(id, '(RFC822)')
-    return email
+def _fetch_email(login_info, id):
+    with _email_connection(*login_info) as connection:
+        result, email = connection.fetch(id, '(RFC822)')
+        return email
 
 def main():
 
@@ -64,6 +68,20 @@ def main():
 
     if args.password: _set_keyring_password(config.keyring_id, config.email_address)
 
+    login_info = [
+        config.email_address,
+        config.server_receive,
+        config.keyring_id,
+        config.email_folder
+    ]
+
+    ids = _get_steam_mail_ids(*login_info)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=config.processes) as executor:
+        future_to_id = {executor.submit(_fetch_email, login_info, id): id for id in ids}
+        for future in concurrent.futures.as_completed(future_to_id):
+            print(future.result())
+            
     return
 
 if __name__ == '__main__':
