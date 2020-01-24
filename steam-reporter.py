@@ -61,6 +61,12 @@ def _fetch_email(login_info, id):
         result, email = connection.fetch(id, '(RFC822)')
         return email
 
+def _process_email(login_info, id):
+    email = _fetch_email(login_info, id)
+    #transaction = _parse_email(email)
+    #return transaction
+    return
+
 def main():
 
     args = _parse_args()
@@ -78,10 +84,10 @@ def main():
     ids = _get_steam_mail_ids(*login_info)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=config.processes) as executor:
-        future_to_id = {executor.submit(_fetch_email, login_info, id): id for id in ids}
+        future_to_id = {executor.submit(_process_email, login_info, id): id for id in ids}
         for future in concurrent.futures.as_completed(future_to_id):
             print(future.result())
-            
+
     return
 
 if __name__ == '__main__':
