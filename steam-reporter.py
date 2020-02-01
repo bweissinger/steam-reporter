@@ -106,12 +106,12 @@ def main():
     ids = _get_steam_mail_ids(*login_info)
 
     while ids:
-        if config.rows_per_transaction <= 0:
+        if config.emails_per_transaction <= 0:
             ids_for_transaction = ids
             ids = []
         else:
-            ids_for_transaction = ids[:config.rows_per_transaction]
-            ids = ids[(config.rows_per_transaction + 1):]
+            ids_for_transaction = ids[:config.emails_per_transaction]
+            ids = ids[(config.emails_per_transaction + 1):]
 
         transactions = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=config.processes) as executor:

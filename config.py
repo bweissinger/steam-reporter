@@ -12,7 +12,7 @@ class Config:
     server_receive: str
     server_send: str
     keyring_id: str = 'steam-reporter'
-    rows_per_transaction: int = 0
+    emails_per_transaction: int = 0
 
     def __init__(self, config_file):
 
@@ -29,4 +29,4 @@ class Config:
         object.__setattr__(self, 'email_address', config.get('General', 'Email_Address'))
         object.__setattr__(self, 'server_receive', config.get('Receive', 'Server'))
         object.__setattr__(self, 'server_send', config.get('Send', 'Server'))
-        object.__setattr__(self, 'rows_per_transaction', config.getint('General', 'Rows_Per_Transaction', ))
+        object.__setattr__(self, 'emails_per_transaction', config.getint('General', 'Emails_Per_Transaction', ))
