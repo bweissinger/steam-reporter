@@ -105,13 +105,21 @@ def main():
 
     ids = _get_steam_mail_ids(*login_info)
 
-    transactions = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=config.processes) as executor:
-        future_to_id = {executor.submit(_process_email, login_info, id): id for id in ids}
-        for future in concurrent.futures.as_completed(future_to_id):
-            if future.result() is not None:
-                transactions.extend(future.result())
-    _post_transactions(transactions, config.database)
+    while ids:
+        if config.rows_per_transaction <= 0:
+            ids_for_transaction = ids
+            ids = []
+        else:
+            ids_for_transaction = ids[:config.rows_per_transaction]
+            ids = ids[(config.rows_per_transaction + 1):]
+
+        transactions = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=config.processes) as executor:
+            future_to_id = {executor.submit(_process_email, login_info, id): id for id in ids_for_transaction}
+            for future in concurrent.futures.as_completed(future_to_id):
+                if future.result() is not None:
+                    transactions.extend(future.result())
+        _post_transactions(transactions, config.database)
 
     return
 
