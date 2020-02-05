@@ -5,6 +5,7 @@ import imaplib
 import keyring
 import getpass
 from config import Config
+from datetime import datetime
 import concurrent.futures
 import email_parser
 import io
@@ -60,9 +61,11 @@ def _set_keyring_password(keyring_id, email_address):
         email_address, 
         getpass.getpass(prompt))
 
-def _get_steam_mail_ids(email_address, server, keyring_id, folder):
+def _get_steam_mail_ids(email_address, server, keyring_id, folder, date):
     with _email_connection(email_address, server, keyring_id, folder) as connection:
-        result, message_ids = connection.search(None, '(FROM "Steam Store")')
+        if date:
+            date = '(SINCE "' + date.strftime("%d-%b-%Y") + '")'
+        result, message_ids = connection.search(None, '(FROM "Steam Store")', date)
         return message_ids[0].split()
 
 def _fetch_email(login_info, id):
@@ -97,11 +100,12 @@ def _post_transactions(transactions, database):
 
 def _get_last_transaction_date(database):
     with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES) as connection:
+
         cursor = connection.cursor()
 
         cursor.execute('''SELECT date FROM steam_trades ORDER BY date DESC LIMIT 1''')
 
-        return cursor.fetchone()
+        return cursor.fetchone()[0]
 
     return None
 
@@ -119,7 +123,9 @@ def main():
         config.email_folder
     ]
 
-    ids = _get_steam_mail_ids(*login_info)
+    date = None if not args.update else _get_last_transaction_date(config.database)
+
+    ids = _get_steam_mail_ids(*login_info, date)
 
     while ids:
         if config.emails_per_transaction <= 0:
