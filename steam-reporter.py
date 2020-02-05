@@ -31,6 +31,12 @@ def _parse_args():
         action='store_true',
         help='Set password in keyring.'
     )
+    parser.add_argument(
+        '--update',
+        '-u',
+        action='store_true',
+        help='Only add transactions after last date in database.'
+    )
 
     return parser.parse_args()
 
