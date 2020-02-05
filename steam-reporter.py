@@ -79,11 +79,11 @@ def _post_transactions(transactions, database):
     if not os.path.exists(database):
         os.makedirs(os.path.dirname(database), exist_ok=True)
 
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES) as connection:
         cursor = connection.cursor()
 
         connection.execute('''CREATE TABLE IF NOT EXISTS steam_trades 
-                (name text, amount real, date datetime, confirmation_number text UNIQUE)''')
+                (name text, amount real, date timestamp, confirmation_number text UNIQUE)''')
         
         rows = connection.executemany('''INSERT OR IGNORE INTO steam_trades 
                 (name, amount, date, confirmation_number) 
@@ -96,7 +96,7 @@ def _post_transactions(transactions, database):
     return
 
 def _get_last_transaction_date(database):
-    with sqlite3.connect(database) as connection:
+    with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES) as connection:
         cursor = connection.cursor()
 
         cursor.execute('''SELECT date FROM steam_trades ORDER BY date DESC LIMIT 1''')
