@@ -89,6 +89,16 @@ def _post_transactions(transactions, database):
 
     return
 
+def _get_last_transaction_date(database):
+    with sqlite3.connect(database) as connection:
+        cursor = connection.cursor()
+
+        cursor.execute('''SELECT date FROM steam_trades ORDER BY date DESC LIMIT 1''')
+
+        return cursor.fetchone()
+
+    return None
+
 def main():
 
     args = _parse_args()
