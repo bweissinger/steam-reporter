@@ -83,7 +83,7 @@ def _post_transactions(transactions, database):
         cursor = connection.cursor()
 
         connection.execute('''CREATE TABLE IF NOT EXISTS steam_trades 
-                (name text, amount real, date date, confirmation_number text UNIQUE)''')
+                (name text, amount real, date datetime, confirmation_number text UNIQUE)''')
         
         rows = connection.executemany('''INSERT OR IGNORE INTO steam_trades 
                 (name, amount, date, confirmation_number) 
