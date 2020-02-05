@@ -79,15 +79,7 @@ def _process_email(login_info, id):
         return email_parser.parse_email_file(email_file)
 
 def _post_transactions(transactions, database):
-    if not os.path.exists(database):
-        os.makedirs(os.path.dirname(database), exist_ok=True)
-
-    with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES) as connection:
-        cursor = connection.cursor()
-
-        connection.execute('''CREATE TABLE IF NOT EXISTS steam_trades 
-                (name text, amount real, date timestamp, confirmation_number text UNIQUE)''')
-        
+    with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES) as connection:        
         rows = connection.executemany('''INSERT OR IGNORE INTO steam_trades 
                 (name, amount, date, confirmation_number) 
                 VALUES (?, ?, ?, ?)''', 
@@ -102,17 +94,29 @@ def _get_last_transaction_date(database):
     with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES) as connection:
 
         cursor = connection.cursor()
-
         cursor.execute('''SELECT date FROM steam_trades ORDER BY date DESC LIMIT 1''')
+        date = cursor.fetchone()
 
-        return cursor.fetchone()[0]
+        return date[0] if date else None
 
     return None
+
+def _create_database_if_not_exists(database):
+    if not os.path.exists(database):
+        os.makedirs(os.path.dirname(database), exist_ok=True)
+
+        with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES) as connection:
+            cursor = connection.cursor()
+
+            connection.execute('''CREATE TABLE steam_trades 
+                    (name text, amount real, date timestamp, confirmation_number text UNIQUE)''')
 
 def main():
 
     args = _parse_args()
     config = Config(args.config)
+
+    _create_database_if_not_exists(config.database)
 
     if args.password: _set_keyring_password(config.keyring_id, config.email_address)
 
