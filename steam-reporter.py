@@ -77,7 +77,7 @@ def _process_email(login_info, id):
 
 def _post_transactions(transactions, database):
     if not os.path.exists(database):
-        os.makedirs(os.path.dirname(database))
+        os.makedirs(os.path.dirname(database), exist_ok=True)
 
     with sqlite3.connect(database) as connection:
         cursor = connection.cursor()
