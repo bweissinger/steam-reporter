@@ -56,7 +56,7 @@ def _set_keyring_password(keyring_id, email_address):
 
 def _get_steam_mail_ids(email_address, server, keyring_id, folder):
     with _email_connection(email_address, server, keyring_id, folder) as connection:
-        result, message_ids = connection.search(None, "ALL")
+        result, message_ids = connection.search(None, '(FROM "Steam Store")')
         return message_ids[0].split()
 
 def _fetch_email(login_info, id):
