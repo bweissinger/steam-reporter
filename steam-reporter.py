@@ -38,6 +38,12 @@ def _parse_args():
         action='store_true',
         help='Only add transactions after last date in database.'
     )
+    parser.add_argument(
+        '--mark_seen',
+        '-m',
+        action='store_true',
+        help='Mark fetched emails as seen.'
+    )
 
     return parser.parse_args()
 
@@ -68,13 +74,14 @@ def _get_steam_mail_ids(email_address, server, keyring_id, folder, date):
         result, message_ids = connection.search(None, '(FROM "Steam Store")', date)
         return message_ids[0].split()
 
-def _fetch_email(login_info, id):
+def _fetch_email(login_info, id, mark_seen):
+    message_parts = '(RFC822)' if mark_seen else '(BODY.PEEK[])'
     with _email_connection(*login_info) as connection:
-        result, email = connection.fetch(id, '(RFC822)')
+        result, email = connection.fetch(id, message_parts)
         return email
 
-def _process_email(login_info, id):
-    email = _fetch_email(login_info, id)
+def _process_email(login_info, id, mark_seen):
+    email = _fetch_email(login_info, id, mark_seen)
     with io.StringIO(email[0][1].decode("utf-8")) as email_file:
         return email_parser.parse_email_file(email_file)
 
@@ -141,7 +148,7 @@ def main():
 
         transactions = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=config.processes) as executor:
-            future_to_id = {executor.submit(_process_email, login_info, id): id for id in ids_for_transaction}
+            future_to_id = {executor.submit(_process_email, login_info, id, args.mark_seen): id for id in ids_for_transaction}
             for future in concurrent.futures.as_completed(future_to_id):
                 if future.result() is not None:
                     transactions.extend(future.result())
