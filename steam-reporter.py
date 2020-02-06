@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import argparse
 import imaplib
 import keyring
 import getpass
@@ -12,40 +11,7 @@ import io
 import tempfile
 import sqlite3
 import os
-
-def _parse_args():
-    """Use argparse to get args from command line"""
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'config',
-        help='Config file')
-    parser.add_argument(
-        '--quiet',
-        '-q',
-        action='store_true',
-        help='do not print to console'
-    )
-    parser.add_argument(
-        '--password',
-        '-p',
-        action='store_true',
-        help='Set password in keyring.'
-    )
-    parser.add_argument(
-        '--update',
-        '-u',
-        action='store_true',
-        help='Only add transactions after last date in database.'
-    )
-    parser.add_argument(
-        '--mark_seen',
-        '-m',
-        action='store_true',
-        help='Mark fetched emails as seen.'
-    )
-
-    return parser.parse_args()
+import command_args
 
 def _email_connection(email_address, server, keyring_id, folder):
     connection = imaplib.IMAP4_SSL(server)
@@ -120,7 +86,7 @@ def _create_database_if_not_exists(database):
 
 def main():
 
-    args = _parse_args()
+    args = command_args.parse_args()
     config = Config(args.config)
 
     _create_database_if_not_exists(config.database)
