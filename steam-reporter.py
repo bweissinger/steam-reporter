@@ -113,7 +113,7 @@ def main():
             ids = ids[(config.emails_per_transaction + 1):]
 
         transactions = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=config.processes) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=config.threads) as executor:
             future_to_id = {executor.submit(_process_email, login_info, id, args.mark_seen): id for id in ids_for_transaction}
             for future in concurrent.futures.as_completed(future_to_id):
                 if future.result() is not None:
