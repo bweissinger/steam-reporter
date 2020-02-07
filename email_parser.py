@@ -18,7 +18,7 @@ def parse_transactions(email, purchase=True):
     for element in remove_none_elements(get_lines_until(email, endOfElementsDelimiter)):
         name, amount = split_name_and_amount(element)
         names.append(name)
-        if purchase: amount = '-' + amount
+        if purchase: amount = 0 - amount
         amounts.append(amount)
 
     confirmationNumbers = get_confirmation_numbers(email)
@@ -32,6 +32,10 @@ def parse_transactions(email, purchase=True):
             number=confirmationNumber))
 
     return transactions
+
+def money_string_to_pennies(amount):
+    amount = remove_usd(amount)
+    return int(amount.replace(".", ""))
     
 def get_confirmation_numbers(email):
     for line in email:
@@ -51,7 +55,8 @@ def get_date(email):
 
 def split_name_and_amount(string):
     name, amount = string.split(": ", 1)
-    return name, remove_usd(amount)
+    amount = money_string_to_pennies(amount)
+    return name, amount
 
 def remove_usd(string):
     return string.split(" ", 1)[0]

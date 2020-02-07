@@ -82,7 +82,7 @@ def _create_database_if_not_exists(database):
             cursor = connection.cursor()
 
             connection.execute('''CREATE TABLE steam_trades 
-                    (name text, amount real, date timestamp, confirmation_number text UNIQUE)''')
+                    (name text, amount int, date timestamp, confirmation_number text UNIQUE)''')
 
 def main():
 
