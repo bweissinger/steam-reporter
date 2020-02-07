@@ -1,4 +1,5 @@
 import collections
+import re
 from datetime import datetime
 
 SUBJECT_SELL = "Subject: You have sold an item on the Community Market"
@@ -32,10 +33,6 @@ def parse_transactions(email, purchase=True):
             number=confirmationNumber))
 
     return transactions
-
-def money_string_to_pennies(amount):
-    amount = remove_usd(amount)
-    return int(amount.replace(".", ""))
     
 def get_confirmation_numbers(email):
     for line in email:
@@ -54,8 +51,9 @@ def get_date(email):
             return datetime.strptime(''.join(fullDate).strip(), "%a %b %d %H:%M:%S %Y")
 
 def split_name_and_amount(string):
-    name, amount = string.split(": ", 1)
-    amount = money_string_to_pennies(amount)
+    name, amount = re.split("(:\s+\d+\D+\d+)", string)[:2]
+    amount = amount.replace(": ", "")
+    amount = int(amount.replace(".", ""))
     return name, amount
 
 def remove_usd(string):
