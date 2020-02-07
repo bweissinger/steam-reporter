@@ -11,13 +11,13 @@ def parse_transactions(email, purchase=True):
     transactions = []
     seek_to_line(email, "https://store.steampowered.com/account")
 
-    endOfElementsDelimiter="------"
+    endOfTransactionsDelimiter="------"
     if not purchase:
-        endOfElementsDelimiter="Total"
+        endOfTransactionsDelimiter="Total"
 
     names, amounts = [], []
-    for element in remove_none_elements(get_lines_until(email, endOfElementsDelimiter)):
-        name, amount = split_name_and_amount(element)
+    for transaction in remove_none_elements(get_lines_until(email, endOfTransactionsDelimiter)):
+        name, amount = split_name_and_amount(transaction)
         names.append(name)
         if purchase: amount = 0 - amount
         amounts.append(amount)
