@@ -25,7 +25,10 @@ def parse_transactions(email, purchase=True):
     confirmationNumbers = get_confirmation_numbers(email)
     date = get_date(email)
 
-    for name,amount,confirmationNumber in zip(names,amounts, confirmationNumbers):
+    if len(confirmationNumbers) != len(names):
+        names, amounts = _parse_multiple_copies(names, amounts, len(confirmationNumbers), date)
+
+    for name,amount,confirmationNumber in zip(names, amounts, confirmationNumbers):
         transactions.append(Transaction(
             title=name,
             amount=amount, 
@@ -33,6 +36,37 @@ def parse_transactions(email, purchase=True):
             number=confirmationNumber))
 
     return transactions
+
+def _parse_multiple_copies(names, amounts, correct_num_transactions, date):
+    num_copies = []
+    corrected_names = []
+    for name in names:
+        num, corrected_name = _parse_num_copies_and_correct_name(name)
+        corrected_names.append(corrected_name)
+        num_copies.append(num)
+    
+    if correct_num_transactions != sum(num_copies):
+        print("Unable to successfully parse email from " 
+            + date.strftime("%Y-%m-%d %H:%M:%S") 
+            + " with transactions: " + names)
+        return transactions.append(None)
+    
+    tmp_names = []
+    tmp_amounts = []
+    for name, num, amount in zip(corrected_names, num_copies, amounts):
+        tmp_names.extend([name] * num)
+        tmp_amounts.extend([amount] * num)
+
+    return tmp_names, tmp_amounts
+
+def _parse_num_copies_and_correct_name(name):
+    try:
+        match = re.match("(^\d+\s+)", name).group(0)
+        num_copies = match.replace(" ", "")
+        name = name.replace(match, "")
+        return int(num_copies), name
+    except:
+        return 1, name
     
 def get_confirmation_numbers(email):
     for line in email:
