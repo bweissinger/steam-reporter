@@ -90,9 +90,6 @@ def _split_name_and_amount(string):
     amount = int(amount.replace(".", ""))
     return name, amount
 
-def _remove_usd(string):
-    return string.split(" ", 1)[0]
-
 def _remove_commas(strings):
     return [element.replace(',', '') for element in strings]
 
