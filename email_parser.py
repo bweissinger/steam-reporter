@@ -7,23 +7,23 @@ SUBJECT_PURCHASE = "Subject: Thank you for your Community Market purchase"
 
 Transaction = collections.namedtuple('Transaction', 'title amount date number')
 
-def parse_transactions(email, purchase=True):
+def _parse_transactions(email, purchase=True):
     transactions = []
-    seek_to_line(email, "https://store.steampowered.com/account")
+    _seek_to_line(email, "https://store.steampowered.com/account")
 
     endOfTransactionsDelimiter="------"
     if not purchase:
         endOfTransactionsDelimiter="Total"
 
     names, amounts = [], []
-    for transaction in remove_none_elements(get_lines_until(email, endOfTransactionsDelimiter)):
-        name, amount = split_name_and_amount(transaction)
+    for transaction in _remove_none_elements(_get_lines_until(email, endOfTransactionsDelimiter)):
+        name, amount = _split_name_and_amount(transaction)
         names.append(name)
         if purchase: amount = 0 - amount
         amounts.append(amount)
 
-    confirmationNumbers = get_confirmation_numbers(email)
-    date = get_date(email)
+    confirmationNumbers = _get_confirmation_numbers(email)
+    date = _get_date(email)
 
     if len(confirmationNumbers) != len(names):
         names, amounts = _parse_multiple_copies(names, amounts, len(confirmationNumbers), date)
@@ -68,15 +68,15 @@ def _parse_num_copies_and_correct_name(name):
     except:
         return 1, name
     
-def get_confirmation_numbers(email):
+def _get_confirmation_numbers(email):
     for line in email:
         if line == "":
             return None
         if "Confirmation Number" in line:
-            confirmationNumbers = remove_none_elements(line.rstrip().split(" "))[2:]
-            return remove_commas(confirmationNumbers)
+            confirmationNumbers = _remove_none_elements(line.rstrip().split(" "))[2:]
+            return _remove_commas(confirmationNumbers)
 
-def get_date(email):
+def _get_date(email):
     for line in email:
         if line == "":
             return None
@@ -84,22 +84,22 @@ def get_date(email):
             fullDate = line.rstrip().split(" ", 3)[3]
             return datetime.strptime(''.join(fullDate).strip(), "%a %b %d %H:%M:%S %Y")
 
-def split_name_and_amount(string):
+def _split_name_and_amount(string):
     name, amount = re.split("(:\s+\d+\D+\d+)", string)[:2]
     amount = amount.replace(": ", "")
     amount = int(amount.replace(".", ""))
     return name, amount
 
-def remove_usd(string):
+def _remove_usd(string):
     return string.split(" ", 1)[0]
 
-def remove_commas(strings):
+def _remove_commas(strings):
     return [element.replace(',', '') for element in strings]
 
-def remove_none_elements(strings):
+def _remove_none_elements(strings):
     return list(filter(None, strings))
 
-def get_lines_until(email, string):
+def _get_lines_until(email, string):
     lines=[]
     for line in email:
         if string == "":
@@ -110,14 +110,14 @@ def get_lines_until(email, string):
             break
     return lines
 
-def seek_to_line(email, string):
+def _seek_to_line(email, string):
     for line in email:
         if string == "":
             return
         if string in line:
             return
 
-def has_subject_line(email, subject):
+def _has_subject_line(email, subject):
     """Determine if email has specific subject line"""
 
     email.seek(0)
@@ -129,9 +129,9 @@ def has_subject_line(email, subject):
 def parse_email_file(opened_email_file):
     """Takes in an opened file, returns parsed transactions."""
 
-    if has_subject_line(opened_email_file, SUBJECT_PURCHASE):
-        return parse_transactions(opened_email_file)
-    elif has_subject_line(opened_email_file, SUBJECT_SELL):
-        return parse_transactions(opened_email_file, purchase=False)
+    if _has_subject_line(opened_email_file, SUBJECT_PURCHASE):
+        return _parse_transactions(opened_email_file)
+    elif _has_subject_line(opened_email_file, SUBJECT_SELL):
+        return _parse_transactions(opened_email_file, purchase=False)
 
     return None
