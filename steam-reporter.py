@@ -105,6 +105,19 @@ def _get_ids(config, login_info, date):
         return [os.path.join(config.local_folder, filename) for filename in os.listdir(config.local_folder)]
     return _get_steam_mail_ids(*login_info, date)
 
+def _threaded_parsing(num_threads, local_folder, ids, login_info, mark_seen):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+        if local_folder:
+            future_to_id = {executor.submit(_process_local_file, id): id for id in ids}
+        else:
+            future_to_id = {executor.submit(_process_email, login_info, id, mark_seen): id for id in ids}
+
+        transactions = []
+        for future in concurrent.futures.as_completed(future_to_id):
+            if future.result() is not None:
+                transactions.extend(future.result())
+        return transactions
+
 def main():
 
     args = command_args.parse_args()
@@ -133,15 +146,7 @@ def main():
             ids_for_transaction = ids[:config.emails_per_transaction]
             ids = ids[(config.emails_per_transaction + 1):]
 
-        transactions = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=config.threads) as executor:
-            if config.local_folder:
-                future_to_id = {executor.submit(_process_local_file, id): id for id in ids_for_transaction}
-            else:
-                future_to_id = {executor.submit(_process_email, login_info, id, args.mark_seen): id for id in ids_for_transaction}
-            for future in concurrent.futures.as_completed(future_to_id):
-                if future.result() is not None:
-                    transactions.extend(future.result())
+        transactions = _threaded_parsing(config.threads, config.local_folder, ids_for_transaction, login_info, args.mark_seen)
         _post_transactions(transactions, config.database)
 
     return
