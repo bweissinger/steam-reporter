@@ -27,6 +27,8 @@ def _parse_transactions(email, purchase=True):
 
     if len(confirmationNumbers) != len(names):
         names, amounts = _parse_multiple_copies(names, amounts, len(confirmationNumbers), date)
+        if not names or not amounts:
+            return None
 
     for name,amount,confirmationNumber in zip(names, amounts, confirmationNumbers):
         transactions.append(Transaction(
@@ -48,8 +50,8 @@ def _parse_multiple_copies(names, amounts, correct_num_transactions, date):
     if correct_num_transactions != sum(num_copies):
         print("Unable to successfully parse email from " 
             + date.strftime("%Y-%m-%d %H:%M:%S") 
-            + " with transactions: " + names)
-        return transactions.append(None)
+            + " with transactions: " + ' '.join(names))
+        return [], []
     
     tmp_names = []
     tmp_amounts = []
