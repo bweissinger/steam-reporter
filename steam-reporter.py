@@ -12,6 +12,8 @@ import tempfile
 import sqlite3
 import os
 import command_args
+import time
+import sys
 
 def _email_connection(email_address, server, keyring_id, folder):
     connection = imaplib.IMAP4_SSL(server)
@@ -23,8 +25,13 @@ def _email_connection(email_address, server, keyring_id, folder):
             "password with the -p/--password flag.\n" % email_address)
         raise
 
-    connection.select(folder)
-    return connection
+    for i in range(0, 12):
+        connection.select(folder)
+        if connection.state == 'SELECTED':
+            return connection
+        time.sleep(5)
+    
+    sys.exit("Timed out selecting inbox folder.")
 
 def _set_keyring_password(keyring_id, email_address):
     prompt = ("Enter password for %s: " % email_address)
