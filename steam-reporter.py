@@ -12,6 +12,7 @@ import tempfile
 import sqlite3
 import os
 import command_args
+import time
 
 def _email_connection(email_address, server, keyring_id, folder):
     connection = imaplib.IMAP4_SSL(server)
@@ -23,7 +24,11 @@ def _email_connection(email_address, server, keyring_id, folder):
             "password with the -p/--password flag.\n" % email_address)
         raise
 
-    connection.select(folder)
+    while True:
+        connection.select(folder)
+        if connection.state == 'SELECTED':
+            break
+        time.sleep(5)
     return connection
 
 def _set_keyring_password(keyring_id, email_address):
