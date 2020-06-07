@@ -11,6 +11,7 @@ class Config:
     email_address: str
     server_receive: str
     server_send: str
+    local_folder: str
     keyring_id: str = 'steam-reporter'
     emails_per_transaction: int = 0
 
@@ -23,6 +24,11 @@ class Config:
             object.__setattr__(self, 'email_folder', config.get('General', 'Email_Folder'))
         except configparser.NoOptionError:
             object.__setattr__(self, 'email_folder', 'INBOX')
+        try:
+            object.__setattr__(self, 'local_folder', config.get('General', 'Local_Folder'))
+        except configparser.NoOptionError:
+            object.__setattr__(self, 'local_folder', None)
+
 
         object.__setattr__(self, 'threads', config.getint('General', 'Threads'))
         object.__setattr__(self, 'database', config.get('General', 'Database'))
