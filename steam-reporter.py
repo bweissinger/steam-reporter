@@ -31,7 +31,7 @@ def _email_connection(email_address, server, keyring_id, folder):
             return connection
         time.sleep(5)
     
-    sys.exit("Failed to select inbox folder.")
+    sys.exit("Timed out selecting inbox folder.")
 
 def _set_keyring_password(keyring_id, email_address):
     prompt = ("Enter password for %s: " % email_address)
