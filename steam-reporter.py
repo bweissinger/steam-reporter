@@ -18,12 +18,17 @@ import sys
 def _email_connection(email_address, server, keyring_id, folder):
     connection = imaplib.IMAP4_SSL(server)
 
-    try:
-        connection.login(email_address, keyring.get_password(keyring_id, email_address))
-    except:
-        print("\nFailed to login to %s. Make sure you have set the correct keyring "
-            "password with the -p/--password flag.\n" % email_address)
-        raise
+    for i in range(0, 12):
+        try:
+            connection.login(email_address, keyring.get_password(keyring_id, email_address))
+        except:
+            print("\nFailed to login to %s. Make sure you have set the correct keyring "
+                "password with the -p/--password flag.\n" % email_address)
+            raise
+        if connection.state == 'AUTH':
+            break
+        elif i == 11:
+            sys.exit("Failed to connect to email.")
 
     for i in range(0, 12):
         connection.select(folder)
