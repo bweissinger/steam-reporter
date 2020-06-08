@@ -11,8 +11,8 @@ class Config:
     email_address: str
     email_server: str
     local_folder: str
+    emails_per_transaction: int
     keyring_id: str = 'steam-reporter'
-    emails_per_transaction: int = 0
 
     def __init__(self, config_file):
 
