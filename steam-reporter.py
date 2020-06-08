@@ -129,7 +129,7 @@ def main():
 
     login_info = [
         config.email_address,
-        config.server_receive,
+        config.email_server,
         config.keyring_id,
         config.email_folder
     ]
