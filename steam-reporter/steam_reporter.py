@@ -3,7 +3,6 @@
 import imaplib
 import keyring
 import getpass
-from config import Config
 from datetime import datetime
 import concurrent.futures
 import email_parser
@@ -11,7 +10,6 @@ import io
 import tempfile
 import sqlite3
 import os
-import command_args
 import time
 import sys
 
@@ -118,10 +116,7 @@ def _threaded_parsing(num_threads, local_folder, ids, login_info, mark_seen):
                 transactions.extend(future.result())
         return transactions
 
-def main():
-
-    args = command_args.parse_args()
-    config = Config(args.config)
+def update_database(args, config):
 
     _create_database_if_not_exists(config.database)
 
@@ -150,6 +145,3 @@ def main():
         _post_transactions(transactions, config.database)
 
     return
-
-if __name__ == '__main__':
-    main()
