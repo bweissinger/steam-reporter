@@ -7,7 +7,7 @@ setuptools.setup(
     name="steam-reporter",
     version="1.0.0",
     author="Bryan Weissinger",
-    description="A small example package",
+    description="Create database of steam market transactions from parsed from email confirmations.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/bweissinger/steam-reporter",
