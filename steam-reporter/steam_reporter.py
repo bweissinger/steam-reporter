@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
+import steam_reporter.command_args
+import steam_reporter.config
+import steam_reporter.email_parser
 
 import imaplib
 import keyring
 import getpass
 from datetime import datetime
 import concurrent.futures
-import email_parser
 import io
 import tempfile
 import sqlite3
@@ -59,11 +61,11 @@ def _fetch_email(login_info, id, mark_seen):
 def _process_email(login_info, id, mark_seen):
     email = _fetch_email(login_info, id, mark_seen)
     with io.StringIO(email[0][1].decode("utf-8")) as email_file:
-        return email_parser.parse_email_file(email_file)
+        return steam_reporter.email_parser.parse_email_file(email_file)
 
 def _process_local_file(id):
     with open(id, 'r') as email:
-            return email_parser.parse_email_file(email)
+            return steam_reporter.email_parser.parse_email_file(email)
 
 def _post_transactions(transactions, database):
     with sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES) as connection:        
@@ -116,7 +118,10 @@ def _threaded_parsing(num_threads, local_folder, ids, login_info, mark_seen):
                 transactions.extend(future.result())
         return transactions
 
-def update_database(args, config):
+def main():
+
+    args = steam_reporter.command_args.parse_args()
+    config = steam_reporter.config.Config(args.config)
 
     _create_database_if_not_exists(config.database)
 
@@ -145,3 +150,6 @@ def update_database(args, config):
         _post_transactions(transactions, config.database)
 
     return
+
+if __name__ == '__main__':
+    main()

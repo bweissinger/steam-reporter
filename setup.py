@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="steam-reporter",
+    name="steam_reporter",
     version="1.0.0",
     author="Bryan Weissinger",
     description="Create database of steam market transactions from parsed from email confirmations.",
@@ -14,7 +14,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     entry_points={
           'console_scripts': [
-              'steam_reporter = steam_reporter.__main__:main'
+              'steam_reporter = steam_reporter.steam_reporter:main'
           ]
     },
     classifiers=[
