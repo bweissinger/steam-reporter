@@ -16,6 +16,7 @@ setuptools.setup(
           'console_scripts': [
               'steam_reporter = steam_reporter.__main__:main'
           ]
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
