@@ -6,7 +6,7 @@ Creates a mysql database of your steam market transactions through the parsing o
 ## Setup of config file
 You must create a config file with your specific email settings. You can copy the default config to your preferred location.
 
-```cp default/config.ini /your/preferred/location/```
+```cp steam_reporter/config/config.ini /your/preferred/location/```
 
 ## Configuration
 
@@ -25,17 +25,17 @@ This setting can be useful for low memory situations, or to provide more frequen
 
 ### Database
 
-`Database = ~/example/database.db`
+`Database = /home/user/example/database.db`
 
 The location of the database. A new database will be created if one does not exist at the provided path.
 
 ### Local_Folder
 
-`Local_Folder = ~/example/downloaded_emails/`
+`Local_Folder = /home/user/example/downloaded_emails/`
 
 This is an optional configuration to allow you to use local email files instead of fetching them from the server. If you do not want to use this option, leave it commented out.
 
-`# Local_Folder = ~/dont_use_local_files`
+`# Local_Folder = `
 
 ### Address
 
@@ -55,4 +55,4 @@ This is the server address for the provided email address.
 
 If you route your steam emails to a specific folder within your inbox, make sure to uncomment this line and add the name of the folder. If they are located in your main inbox, leave it commented out.
 
-`# Folder = emails_in_inbox`
+`# Folder = `
