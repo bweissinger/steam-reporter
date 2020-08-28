@@ -1,7 +1,12 @@
 Creates a mysql database of your steam market transactions through the parsing of steam emails.
 
+Steam-reporter will only work for American steam users, or those using steam in English with USD ($) currency settings.
+
 
 # Installation
+
+## Using pip
+Currently steam-reporter must be installed with pip from a local directory. Clone the repository and run `pip install path/to/repo`
 
 ## Setup of config file
 You must create a config file with your specific email settings. You can copy the default config to your preferred location.
