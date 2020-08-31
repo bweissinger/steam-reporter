@@ -14,12 +14,12 @@ $ steam_reporter config.ini
 ## Using pip
 Currently steam-reporter must be installed with pip from a local directory. Clone the repository and run `pip install path/to/repo`
 
-## Setup of config file
+## Create config file
 You must create a config file with your specific email settings. You can copy the default config to your preferred location.
 
 ```cp steam_reporter/config/config.ini /your/preferred/location/```
 
-## Configuration
+# Configuration
 
 ### Threads
 
