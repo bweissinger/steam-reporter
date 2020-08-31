@@ -1,7 +1,13 @@
 Creates a mysql database of your steam market transactions through the parsing of steam emails.
 
-Steam-reporter will only work for American steam users, or those using steam in English with USD ($) currency settings.
+Steam-reporter will work only for english users with a $ currency designator. It has been tested with North American (US) transaction emails.
 
+# Usage
+
+It's as simple as 
+```
+$ steam_reporter config.ini
+```
 
 # Installation
 
