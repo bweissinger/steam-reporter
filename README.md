@@ -1,4 +1,4 @@
-Creates a mysql database of your steam market transactions through the parsing of steam emails.
+Creates a SQLite3 database of your steam market transactions through the parsing of steam emails.
 
 Steam-reporter will work only for english users with a $ currency designator. It has been tested with North American (US) transaction emails.
 
