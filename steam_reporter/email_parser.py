@@ -1,6 +1,7 @@
 import collections
 import re
 from datetime import datetime
+from dateutil import parser
 
 SUBJECT_SELL = "Subject: You have sold an item on the Community Market"
 SUBJECT_PURCHASE = "Subject: Thank you for your Community Market purchase"
@@ -48,9 +49,12 @@ def _parse_multiple_copies(names, amounts, correct_num_transactions, date):
         num_copies.append(num)
     
     if correct_num_transactions != sum(num_copies):
-        print("Unable to successfully parse email from " 
-            + date.strftime("%Y-%m-%d %H:%M:%S") 
-            + " with transactions: " + ' '.join(names))
+        try:
+            print("Unable to successfully parse email from " 
+                + date.strftime("%Y-%m-%d %H:%M:%S") 
+                + " with transactions: " + ' '.join(names))
+        except:
+            print("Unable to successfully parse email")
         return [], []
     
     tmp_names = []
@@ -71,20 +75,31 @@ def _parse_num_copies_and_correct_name(name):
         return 1, name
     
 def _get_confirmation_numbers(email):
-    for line in email:
-        if line == "":
-            return None
-        if "Confirmation Number" in line:
-            confirmationNumbers = _remove_none_elements(line.rstrip().split(" "))[2:]
-            return _remove_commas(confirmationNumbers)
+    line = _seek_to_line(email, "Confirmation Number")
+    try:
+        confirmationNumbers = _remove_none_elements(line.rstrip().split(" "))[2:]
+        if len(confirmationNumbers) == 0:
+            raise Exception
+        return _remove_commas(confirmationNumbers)
+    except Exception:
+        pass
+    # Confirmation numbers may be on next line of Buy confirmation emails
+    try:
+        return _remove_none_elements(next(email).rstrip().split())
+    except Exception:
+        return None
 
 def _get_date(email):
-    for line in email:
-        if line == "":
-            return None
-        if "Date Confirmed" in line:
-            fullDate = line.rstrip().split(" ", 3)[3]
-            return datetime.strptime(''.join(fullDate).strip(), "%a %b %d %H:%M:%S %Y")
+    line = _seek_to_line(email, "Date Confirmed")
+    try:
+        return parser.parse(line, fuzzy=True)
+    except Exception:
+        pass
+    # Date may be on next line of Buy confirmation emails
+    try:
+        return parser.parse(next(email), fuzzy=True)
+    except Exception:
+        return None
 
 def _split_name_and_amount(string):
     name, amount = re.split("(:\s+\d+\D+\d+)", string)[:2]
@@ -111,10 +126,8 @@ def _get_lines_until(email, string):
 
 def _seek_to_line(email, string):
     for line in email:
-        if string == "":
-            return
-        if string in line:
-            return
+        if string == "" or string in line:
+            return line
 
 def _has_subject_line(email, subject):
     """Determine if email has specific subject line"""
