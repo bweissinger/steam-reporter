@@ -1,50 +1,49 @@
-Creates a SQLite3 database of your steam market transactions through the parsing of steam emails.
+# steam-reporter
+`steam-reporter` is a command line tool that parses steam markent email receipts and stores transaction information in a local SQLite database. It is currently only tested and configured for US based users.
 
-Steam-reporter will work only for english users with a $ currency designator. It has been tested with North American (US) transaction emails.
+## Installation
+`pip install steam_reporter`
 
-# Usage
+## Setup
+### config.ini
+Copy the repos [default config file](https://github.com/bweissinger/steam-reporter/blob/master/steam_reporter/config/config.ini) to a directory of your choice, such as `~/path_to_config/config.ini`. Complete the `database`, `address`, and `server` sections according to your use case. See below for an overview of each section in the config file. If you have multiple email accounts you need to fetch transactions from, create a config.ini file for each email address, and run `steam-reporter` for each config file. They can point to the same database file if needed.
+
+### keyring
+`steam-reporter` uses the python keyring library to securely handle email account credentials. Credentials must be added before use. `steam-reporter` can be used as a frontend for setting keyring credentials via the `-p` flag. For example, `steam_reporter -p config_file_path/config.ini`. You will then be prompted for username and password. If you would like to set the credentials manually, use the service name `steam-reporter`.
+
+## Usage
 
 It's as simple as 
 ```
-$ steam_reporter config.ini
+$ steam_reporter /config_file_path/config.ini
 ```
 
-# Installation
-
-## Using pip
-Currently steam-reporter must be installed with pip from a local directory. Clone the repository and run `pip install path/to/repo`
-
-## Create config file
-You must create a config file with your specific email settings. You can copy the default config to your preferred location.
-
-```cp steam_reporter/config/config.ini /your/preferred/location/```
-
-# Configuration
+## config options
 
 ### Threads
 
 `Threads = 5`
 
-Steam-reporter is multi-threaded to speed up the fetching of emails from email servers. Note that it will have little impact on the actuall parsing of emails, and multiple threads probably isn't needed if you are using local .eml files.
+`steam-reporter` is multi-threaded, and the number of threads can be set with this option.
 
 ### Emails_Per_Transaction
 
 `Emails_Per_Transaction = 1000`
 
-This limits the number of emails parsed before performing the transaction with the database. Note that each email can have multiple steam market confirmations, so the number of steam transactions added per each database transaction can be greater than the number set.
+This limits the number of emails parsed before performing the transaction with the database. Note that each email can have multiple steam market confirmations, so the number of steam transactions added per each database transaction can be different than the number set.
 This setting can be useful for low memory situations, or to provide more frequent status updates during processing.
 
 ### Database
 
 `Database = /home/user/example/database.db`
 
-The location of the database. A new database will be created if one does not exist at the provided path.
+The location of the database. A new database will be created if one does not exist at the provided path. Multiple configs can point to the same database.
 
 ### Local_Folder
 
 `Local_Folder = /home/user/example/downloaded_emails/`
 
-This is an optional configuration to allow you to use local email files instead of fetching them from the server. If you do not want to use this option, leave it commented out.
+This is an optional configuration to allow you to use email files stored locally instead of fetching them from the server. If you do not want to use this option, leave it commented out.
 
 `# Local_Folder = `
 
