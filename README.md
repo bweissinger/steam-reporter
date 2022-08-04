@@ -18,7 +18,25 @@ It's as simple as
 $ steam_reporter /config_file_path/config.ini
 ```
 
-## config options
+### Syntax
+`steam_reporter [-h] [--quiet] [--password] [--update] [--mark_seen] config`
+
+### Positional Arguments
+`config` - the location of the intended config file, such as `~/path_to_config/config.ini`
+
+### Options
+`-h`, `--help` - Shows help.
+\
+`-q`, `--quiet` - Prevents printing to console.
+\
+`-p`, `--password` - Sets the username and password in the local keyring.
+\
+`-u`, `--update` - Only adds transactions on and after the last dated transaction in the database.
+\
+`-m`, `--mark_seen` - Marks fetched emails as seen.
+
+
+## Config File Options
 
 ### Threads
 
