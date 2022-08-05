@@ -134,7 +134,7 @@ def _threaded_parsing(config, ids, mark_seen):
                 config.email_folder,
             ) as connection:
                 try:
-                    result, emails = connection.fetch(b",".join(ids), message_parts)
+                    result, emails = connection.fetch(ids, message_parts)
                 except imaplib.IMAP4.error as error:
                     if "FETCH command error: BAD [b'Command Error." in str(error):
                         print(
@@ -169,9 +169,26 @@ def main():
             ids_for_transaction = ids[: config.emails_per_transaction]
             ids = ids[config.emails_per_transaction + 1 :]
 
+        shortened_ids = b""
+        for index in range(len(ids_for_transaction)):
+            if index == 0:
+                shortened_ids += ids_for_transaction[index]
+            elif (
+                int(ids_for_transaction[index]) - int(ids_for_transaction[index - 1])
+                > 1
+            ):
+                shortened_ids += (
+                    b":"
+                    + ids_for_transaction[index - 1]
+                    + b","
+                    + ids_for_transaction[index]
+                )
+            elif index == len(ids_for_transaction) - 1:
+                shortened_ids += b":" + ids_for_transaction[index]
+
         transactions = _threaded_parsing(
             config,
-            ids_for_transaction,
+            shortened_ids,
             args.mark_seen,
         )
         _post_transactions(transactions, config.database)
