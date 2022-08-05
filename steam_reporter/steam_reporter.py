@@ -133,7 +133,15 @@ def _threaded_parsing(config, ids, mark_seen):
                 config.keyring_id,
                 config.email_folder,
             ) as connection:
-                result, emails = connection.fetch(b",".join(ids), message_parts)
+                try:
+                    result, emails = connection.fetch(b",".join(ids), message_parts)
+                except imaplib.IMAP4.error as error:
+                    if "FETCH command error: BAD [b'Command Error." in str(error):
+                        print(
+                            "To many IDs provided to FETCH. Reduce emails_per_transaction in config file.\n"
+                        )
+                    sys.exit(error)
+
             emails = [email for email in emails if len(email) == 2]
             transactions = pool.map(_process_email, emails)
 
