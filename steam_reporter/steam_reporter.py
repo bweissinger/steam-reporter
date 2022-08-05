@@ -9,36 +9,35 @@ import concurrent.futures
 import io
 import sqlite3
 import os
-import time
 import sys
+import time
+
+TIMEOUT_SECONDS = 30
+TIMEOUT_TRIES = 10
 
 
 def _email_connection(email_address, server, keyring_id, folder):
     connection = imaplib.IMAP4_SSL(server)
 
-    for i in range(0, 12):
+    for i in range(TIMEOUT_TRIES):
         try:
             connection.login(
                 email_address, keyring.get_password(keyring_id, email_address)
             )
-        except:
+            connection.select(folder)
+            if connection.state == "SELECTED":
+                return connection
+            else:
+                raise ValueError("Failed to select folder '%s'\n" % folder)
+        except (imaplib.IMAP4.error, ValueError) as error:
             print(
-                "\nFailed to login to %s. Make sure you have set the correct"
-                "keyring password with the -p/--password flag.\n" % email_address
+                "Failed to login to %s and select folder %s.\n"
+                % (email_address, folder)
             )
-            raise
-        if connection.state == "AUTH":
-            break
-        elif i == 11:
-            sys.exit("Failed to connect to email.")
+            print("Error: %s\n" % error)
+            time.sleep(TIMEOUT_SECONDS)
 
-    for i in range(0, 12):
-        connection.select(folder)
-        if connection.state == "SELECTED":
-            return connection
-        time.sleep(5)
-
-    sys.exit("Timed out selecting inbox folder.")
+    sys.exit("Failed to connect.")
 
 
 def _set_keyring_password(keyring_id, email_address):
