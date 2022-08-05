@@ -40,28 +40,29 @@ $ steam_reporter /config_file_path/config.ini
 
 ### Threads
 
-`Threads = 5`
+`Threads = 1`
 
-`steam-reporter` is multi-threaded, and the number of threads can be set with this option.
+This is the number of processes to use. It is unlikely to have much impact unless you are processing very large numbers of local files. steam-reporter was moved to multiprocessing, but `Threads` was kept to remain compatibility for people with existing configs
+
 
 ### Emails_Per_Transaction
 
 `Emails_Per_Transaction = 1000`
 
-This limits the number of emails parsed before performing the transaction with the database. Note that each email can have multiple steam market confirmations, so the number of steam transactions added per each database transaction can be different than the number set.
-This setting can be useful for low memory situations, or to provide more frequent status updates during processing.
+Rows_Per_Transaction : Number of files/emails to process at one time. Due to the possibility of multiple transaction included in each email, the actual number of commited transactions may be more. Has most impact on emails, not local files. Larger numbers increase memory usage. NOTE :::: There appears to be a limit to the number of characters supplied to the IMAP fetch command. If this occurs (a FETCH command error, or unterminated line) reduce this number. As id lengths increase (i.e. 200 vs 2000 vs 20000) this number may have to be reduced.
+
 
 ### Database
 
 `Database = /home/user/example/database.db`
 
-The location of the database. A new database will be created if one does not exist at the provided path. Multiple configs can point to the same database.
+Location of database to use. A new database will be created if it does not exist.
 
 ### Local_Folder
 
 `Local_Folder = /home/user/example/downloaded_emails/`
 
-This is an optional configuration to allow you to use email files stored locally instead of fetching them from the server. If you do not want to use this option, leave it commented out.
+Uncomment this line to use local eml files instead of fetching from server.
 
 `# Local_Folder = `
 
@@ -69,18 +70,25 @@ This is an optional configuration to allow you to use email files stored locally
 
 `Address = example@email.com`
 
-The email address that your steam market confirmation emails are sent to.
+Email address to fetch emails from.
 
 ### Server
 
 `Server = imap.email.com`
 
-This is the server address for the provided email address.
+Email server for the address.
 
 ### Folder
 
 `Folder = Steam_Emails_Location`
 
-If you route your steam emails to a specific folder within your inbox, make sure to uncomment this line and add the name of the folder. If they are located in your main inbox, leave it commented out.
+Uncomment this line to search a specific inbox folder. Use this if your steam market transaction emails are not located in your main inbox folder.
 
 `# Folder = `
+
+## Troubleshooting
+### Failing to Login/App Specific Passwords
+Some email providers, such as hotmail, now require an app specific password in order for third party applications to login. If steam-reporter fails to connect to your email account, this may be why. There should be an option in your email account settings to generate an app specific password. Use this in place of your regular password
+
+### FETCH Error
+When fetching emails from the server, the fetch command can take a series of ids - such as `1:4`, `1,2,3,4`, or `1,3:5`. There appears to be a limit to the length of the command that can be sent. If you get an error regarding a FETCH command error, you probably need to reduce the emails per transaction in your config file. Currently, steam-reporter uses strictly a comma seperated list. Therefore, several thousands of ids can exceed this length.
