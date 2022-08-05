@@ -45,32 +45,6 @@ def _set_keyring_password(keyring_id, email_address):
     keyring.set_password(keyring_id, email_address, getpass.getpass(prompt))
 
 
-def _get_steam_mail_ids(email_address, server, keyring_id, folder, date):
-    with _email_connection(email_address, server, keyring_id, folder) as connection:
-        if date:
-            date = '(SINCE "' + date.strftime("%d-%b-%Y") + '")'
-        result, message_ids = connection.search(None, '(FROM "Steam Store")', date)
-        return message_ids[0].split()
-
-
-def _fetch_email(login_info, id, mark_seen):
-    message_parts = "(RFC822)" if mark_seen else "(BODY.PEEK[])"
-    with _email_connection(*login_info) as connection:
-        result, email = connection.fetch(id, message_parts)
-        return email
-
-
-def _process_email(login_info, id, mark_seen):
-    email = _fetch_email(login_info, id, mark_seen)
-    with io.StringIO(email[0][1].decode("utf-8")) as email_file:
-        return steam_reporter.email_parser.parse_email_file(email_file)
-
-
-def _process_local_file(id):
-    with open(id, "r") as email:
-        return steam_reporter.email_parser.parse_email_file(email)
-
-
 def _post_transactions(transactions, database):
     with sqlite3.connect(
         database, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
@@ -102,8 +76,6 @@ def _get_last_transaction_date(database):
 
         return date[0] if date else None
 
-    return None
-
 
 def _create_database_if_not_exists(database):
     if not os.path.exists(database):
@@ -118,23 +90,52 @@ def _create_database_if_not_exists(database):
             )
 
 
-def _get_ids(config, login_info, date):
+def _get_ids(config, date):
     if config.local_folder:
         return [
             os.path.join(config.local_folder, filename)
             for filename in os.listdir(config.local_folder)
         ]
-    return _get_steam_mail_ids(*login_info, date)
+    else:
+        with _email_connection(
+            config.email_address,
+            config.email_server,
+            config.keyring_id,
+            config.email_folder,
+        ) as connection:
+            if date:
+                date = '(SINCE "' + date.strftime("%d-%b-%Y") + '")'
+            result, message_ids = connection.search(None, '(FROM "Steam Store")', date)
+            return message_ids[0].split()
 
 
-def _threaded_parsing(num_threads, local_folder, ids, login_info, mark_seen):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
-        if local_folder:
+def _process_email(email):
+    with io.StringIO(email[1].decode("utf-8")) as email_file:
+        return steam_reporter.email_parser.parse_email_file(email_file)
+
+
+def _process_local_file(id):
+    with open(id, "r") as email:
+        return steam_reporter.email_parser.parse_email_file(email)
+
+
+def _threaded_parsing(config, ids, mark_seen):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=config.threads) as executor:
+        if config.local_folder:
             future_to_id = {executor.submit(_process_local_file, id): id for id in ids}
         else:
+            message_parts = "(RFC822)" if mark_seen else "(BODY.PEEK[])"
+            with _email_connection(
+                config.email_address,
+                config.email_server,
+                config.keyring_id,
+                config.email_folder,
+            ) as connection:
+                result, emails = connection.fetch(b",".join(ids), message_parts)
             future_to_id = {
-                executor.submit(_process_email, login_info, id, mark_seen): id
-                for id in ids
+                executor.submit(_process_email, email): email
+                for email in emails
+                if len(email) == 2
             }
 
         transactions = []
@@ -145,7 +146,6 @@ def _threaded_parsing(num_threads, local_folder, ids, login_info, mark_seen):
 
 
 def main():
-
     args = steam_reporter.command_args.parse_args()
     config = steam_reporter.config.Config(args.config)
 
@@ -154,16 +154,9 @@ def main():
     if args.password:
         _set_keyring_password(config.keyring_id, config.email_address)
 
-    login_info = [
-        config.email_address,
-        config.email_server,
-        config.keyring_id,
-        config.email_folder,
-    ]
-
     date = None if not args.update else _get_last_transaction_date(config.database)
 
-    ids = _get_ids(config, login_info, date)
+    ids = _get_ids(config, date)
 
     while ids:
         if config.emails_per_transaction <= 0:
@@ -174,10 +167,8 @@ def main():
             ids = ids[config.emails_per_transaction + 1 :]
 
         transactions = _threaded_parsing(
-            config.threads,
-            config.local_folder,
+            config,
             ids_for_transaction,
-            login_info,
             args.mark_seen,
         )
         _post_transactions(transactions, config.database)
