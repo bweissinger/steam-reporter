@@ -2,15 +2,17 @@
 import steam_reporter.command_args
 import steam_reporter.config
 import steam_reporter.email_parser
+import itertools
 import imaplib
 import keyring
 import getpass
-import concurrent.futures
 import io
 import sqlite3
 import os
 import sys
 import time
+
+from multiprocessing import Pool
 
 TIMEOUT_SECONDS = 30
 TIMEOUT_TRIES = 10
@@ -120,9 +122,9 @@ def _process_local_file(id):
 
 
 def _threaded_parsing(config, ids, mark_seen):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=config.threads) as executor:
+    with Pool(processes=config.processes) as pool:
         if config.local_folder:
-            future_to_id = {executor.submit(_process_local_file, id): id for id in ids}
+            transactions = pool.map(_process_local_file, ids)
         else:
             message_parts = "(RFC822)" if mark_seen else "(BODY.PEEK[])"
             with _email_connection(
@@ -132,17 +134,10 @@ def _threaded_parsing(config, ids, mark_seen):
                 config.email_folder,
             ) as connection:
                 result, emails = connection.fetch(b",".join(ids), message_parts)
-            future_to_id = {
-                executor.submit(_process_email, email): email
-                for email in emails
-                if len(email) == 2
-            }
+            emails = [email for email in emails if len(email) == 2]
+            transactions = pool.map(_process_email, emails)
 
-        transactions = []
-        for future in concurrent.futures.as_completed(future_to_id):
-            if future.result() is not None:
-                transactions.extend(future.result())
-        return transactions
+        return list(itertools.chain.from_iterable(transactions))
 
 
 def main():
