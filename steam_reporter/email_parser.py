@@ -35,7 +35,7 @@ def _parse_transactions(email, purchase=True):
             names, amounts, len(confirmationNumbers), date
         )
         if not names or not amounts:
-            return None
+            return []
 
     for name, amount, confirmationNumber in zip(names, amounts, confirmationNumbers):
         transactions.append(
@@ -164,4 +164,4 @@ def parse_email_file(opened_email_file):
     elif _has_subject_line(opened_email_file, SUBJECT_SELL):
         return _parse_transactions(opened_email_file, purchase=False)
 
-    return None
+    return []
