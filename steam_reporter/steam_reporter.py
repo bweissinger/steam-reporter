@@ -122,7 +122,7 @@ def _process_local_file(id):
 
 
 def _threaded_parsing(config, ids, mark_seen):
-    with Pool(processes=config.processes) as pool:
+    with Pool(processes=config.threads) as pool:
         if config.local_folder:
             transactions = pool.map(_process_local_file, ids)
         else:
