@@ -14,7 +14,7 @@ classifiers = [
 	"License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = ["keyring", "dataclasses", "python-dateutil"]
+dependencies = ["keyring", "python-dateutil"]
 
 [project.urls]
 "Homepage" = "https://github.com/bweissinger/steam-reporter"
